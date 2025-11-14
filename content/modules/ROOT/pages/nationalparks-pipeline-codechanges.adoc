@@ -1,38 +1,37 @@
-= Automation with Pipelines
-:navtitle: Automation with Pipelines
+= パイプラインによる自動化
+:navtitle: パイプラインによる自動化
 
 include::vars.adoc[]
 
-In addition to the OpenShift built-in components, OpenShift Pipelines provide additional triggers and automation to pipelines thanks to link:https://tekton.dev/docs/triggers/[*Tekton Triggers*,window='_blank'].
+OpenShiftに組み込まれたコンポーネントに加え、OpenShift Pipelinesは link:https://tekton.dev/docs/triggers/[*Tekton Triggers*,window='_blank'] のおかげで、パイプラインに追加のトリガーと自動化を提供します。
 
 [#webhooks]
-== Background: Web Hooks
+== 背景: Webフック
 
-Most Git repository servers support the concept of web hooks -- calling to an
-external source via HTTP(S) when a change in the code repository happens.
-OpenShift provides an API endpoint that supports receiving hooks from
-remote systems in order to trigger builds. By pointing the code repository's
-hook at the OpenShift Pipelines resources, automated code/build/deploy pipelines can be
-achieved.
+ほとんどのGitリポジトリサーバーはWebフックの概念をサポートしています -- コードリポジトリで変更が発生したときに、HTTP(S)経由で外部ソースを呼び出すことです。
+OpenShiftは、ビルドをトリガーするためにリモートシステムからフックを受信することをサポートするAPIエンドポイントを提供します。
+コードリポジトリのフックをOpenShift Pipelinesのリソースに向けることで、自動化されたコード/ビルド/デプロイのパイプラインを実現できます。
 
 [#adding_triggers_to_your_pipeline]
-== Adding Triggers to your Pipeline
+== パイプラインへのトリガーの追加
 
-Tekton *Triggers* enable us to configure Pipelines to respond to external events (Git push events, pull requests etc) such as Web Hooks.
-
-Adding triggering support requires the creation of a `TriggerTemplate`, `TriggerBinding`, and an `EventListener` in our project.
+Tekton *Triggers* により、Webフックなどの外部イベント（Gitのプッシュイベント、プルリクエストなど）に応答するようにパイプラインを設定できます。
+トリガーサポートを追加するには、プロジェクトに `TriggerTemplate`、`TriggerBinding`、および `EventListener` を作成する必要があります。
 
 [.bordershadow]
 image::devops-pipeline-triggers.png[link="self",window=_blank]
 
-Let's see each component in detail:
+各コンポーネントを詳しく見てみましょう：
 
-* *TriggerTemplate*: a trigger template is a template for newly created resources. It supports parameters to create specific `PipelineResources` and `PipelineRuns`.
-* *TriggerBinding*: validates events and extracts payload fields
-* *EventListener*: connects `TriggerBindings` and `TriggerTemplates` into an addressable endpoint (the event sink). It uses the extracted event parameters from each TriggerBinding (and any supplied static parameters) to create the resources specified in the corresponding TriggerTemplate. It also optionally allows an external service to pre-process the event payload via the interceptor field.
+* *TriggerTemplate*: トリガーテンプレートは、新しく作成されるリソースのテンプレートです。
+特定の `PipelineResources` や `PipelineRuns` を作成するためのパラメータをサポートします。
+* *TriggerBinding*: イベントを検証し、ペイロードフィールドを抽出します。
+* *EventListener*: `TriggerBindings` と `TriggerTemplates` をアドレス可能なエンドポイント（イベントシンク）に接続します。
+各TriggerBindingから抽出されたイベントパラメータ（および提供された静的パラメータ）を使用して、対応するTriggerTemplateで指定されたリソースを作成します。
+オプションで、インターセプターフィールドを介して外部サービスがイベントペイロードを前処理することもできます。
 
-Now let's create them all together for our Pipeline.
-// Depending on which language you chose, you can use the following YAML files:
+では、私たちのパイプラインのためにこれらすべてを一緒に作成しましょう。
+// どの言語を選択したかに応じて、以下のYAMLファイルを使用できます：
 
 // ====
 // *Java*
@@ -64,26 +63,22 @@ oc create -f {ocp4_starter_gitea_url}/{ocp4_starter_gitea_user}/nationalparks/ra
 // ----
 // ====
 
-This will create a new Pod with a Route that we can use to setup our Webhook on GitHub to trigger the automatic start of the Pipeline.
-
-In the *Topology* view, verify if a new Deployment *el-nationalparks* for the `EventListener` has ben created:
+これにより、パイプラインの自動開始をトリガーするためにGitHubでWebhookを設定するために使用できる、Route（ルート）を持つ新しいPodが作成されます。
+*Topology*（トポロジー）ビューで、`EventListener` のための新しいデプロイメント *el-nationalparks* が作成されたか確認してください：
 
 [.bordershadow]
 image::devops-pipeline-triggers-eventlistener.png[width=500,link="self",window=_blank]
 
 [#configuring_webhooks]
-== Exercise: Configuring Gitea Web Hooks
+== 演習: Gitea Webフックの設定
 
-In this section you can use a build webhook to trigger a pipeline execution every time there is a change in the nationalparks Gitea repository.
+このセクションでは、ビルドWebフックを使用して、nationalparksのGiteaリポジトリに変更があるたびにパイプラインの実行をトリガーできます。
+URLをクリップボードにコピーしたら、Gitea上にあるコードリポジトリに移動します：
 
-Once you have the URL copied to your clipboard, navigate to the code repository
-that you have on Gitea:
+link:{ocp4_starter_gitea_url}/{ocp4_starter_gitea_user}/nationalparks[Giteaリポジトリ,window='_blank']
 
-link:{ocp4_starter_gitea_url}/{ocp4_starter_gitea_user}/nationalparks[Gitea Repository,window='_blank']
-
-Sign-in using the button on the top right of the screen.
-
-Your Gitea credentials are:
+画面右上のボタンを使用してサインインします。
+Giteaの認証情報は次のとおりです：
 
 [source,subs=attributes]
 ----
@@ -91,87 +86,81 @@ username: {ocp4_starter_gitea_user}
 password: {ocp4_starter_gitea_password}
 ----
 
-Click the Settings link on the top right of the screen:
+画面右上のSettings（設定）リンクをクリックします：
 
 [.bordershadow]
 image::nationalparks-codechanges-settings.png[link="self",window=_blank]
 
-Click on *Webhooks*, then the *Add Webhook* button, and finally select *Gitea*.
-
+*Webhooks*（Webフック）をクリックし、次に *Add Webhook*（Webフックの追加）ボタンをクリックし、最後に *Gitea* を選択します。
 [.bordershadow]
 image::nationalparks-codechanges-add-webhook.png[link="self",window=_blank]
 
-We will use the EventListener we created in the previous section to configure a webhook in Gitea.
-The `EventListener` has an OpenShift `Route` exposed that we are going to use as the URL for the webhook.
-
+前のセクションで作成したEventListenerを使用して、GiteaでWebhookを設定します。
+`EventListener` はOpenShiftの `Route`（ルート）を公開しており、これをWebhookのURLとして使用します。
 [source,role=copypaste,subs=attributes]
 ----
 http://el-nationalparks-{ocp4_starter_project}.{ocp4_starter_apps_domain}/
 ----
 
-Paste your link into the "Payload URL" field.
+リンクを「Payload URL」フィールドに貼り付けます。
 
-Change the `Content Type` to `application/json`.
+`Content Type`（コンテンツタイプ）を `application/json` に変更します。
 
-Finally, click on *Update Webhook*.
+最後に、*Update Webhook*（Webhookの更新）をクリックします。
 
 [.bordershadow]
 image::nationalparks-codechanges-config-webhook.png[link="self",window=_blank]
 
-Boom! From now on, every time you commit new source code to your Gitea
-repository, a new build and deploy will occur inside of OpenShift. Let's try
-this out.
+これで完了です！
+これからは、Giteaリポジトリに新しいソースコードをコミットするたびに、OpenShift内で新しいビルドとデプロイが発生します。
+これを試してみましょう。
 
 [#using_webhooks]
-== Exercise: Using Gitea Web Hooks
+== 演習: Gitea Webフックの使用
 
-Next, we will use Gitea to edit a file, commit and push the changes.
-
-Let's open the `BackendController.java` file
-link:{ocp4_starter_gitea_url}/{ocp4_starter_gitea_user}/nationalparks/src/branch/master/src/main/java/com/openshift/evg/roadshow/parks/rest[located here in the gitea repository,window='_blank'].
-
-This is the url location in case you want to copy and paste it into your browser:
+次に、Giteaを使用してファイルを編集し、変更をコミットしてプッシュします。
+`BackendController.java` ファイル link:{ocp4_starter_gitea_url}/{ocp4_starter_gitea_user}/nationalparks/src/branch/master/src/main/java/com/openshift/evg/roadshow/parks/rest[をGiteaリポジトリのここで開きます,window='_blank']。
+ブラウザにコピー＆ペーストしたい場合、URLの場所は次のとおりです：
 
 [source,role="copypaste",subs="attributes"]
 ----
 {ocp4_starter_gitea_url}/{ocp4_starter_gitea_user}/nationalparks/src/branch/master/src/main/java/com/openshift/evg/roadshow/parks/rest
 ----
 
-Once you have the file on the screen, click the edit button in the top right
-hand corner as shown here:
+ファイルが画面に表示されたら、図のように右上隅の編集ボタンをクリックします：
 
 image::nationalparks-codechanges-change-code.png[Webhook]
 
-Change line number 20:
+20行目を変更します：
 
 [source]
 ----
 return new Backend("nationalparks","National Parks", new Coordinates("47.039304", "14.505178"), 4);
 ----
 
-To
+これを以下に変更します：
 
 [source,role="copypaste"]
 ----
 return new Backend("nationalparks","Amazing National Parks", new Coordinates("47.039304", "14.505178"), 4);
 ----
 
-Click on Commit changes at the bottom of the screen. Feel free to enter a commit
-message.
+画面下部の *Commit changes*（変更をコミット）をクリックします。
+コミットメッセージは自由に入力してください。
 
-Once you have committed your changes, a new *PipelineRun* should be triggered automatically.
+変更をコミットすると、新しい *PipelineRun* が自動的にトリガーされるはずです。
+前の演習でPipelineRunを見ましたね。これは新しい *Build*（ビルド）を作成し、アプリケーションをOpenShiftにデプロイします。
+これを確認しましょう！
 
-You have seen the PipelineRun in the previous exercise. It creates a new *Build* and deploys the application to OpenShift. Let's check this!
-
-From the *Topology* view, click `nationalparks` and look at the *Builds* section of the *Resources* tab, or, run the
-following command to verify:
+*Topology*（トポロジー）ビューから `nationalparks` をクリックし、*Resources*（リソース）タブの *Builds*（ビルド）セクションを見るか、または
+次のコマンドを実行して確認します：
 
 [source,role="copypaste"]
 ----
 oc get builds
 ----
 
-You should see that a new build is running:
+新しいビルドが実行中であることがわかるはずです：
 
 [.console-output]
 [source]
@@ -181,11 +170,10 @@ nationalparks-1   Source    Git@b052ae6   Complete   18 hours ago     36s
 nationalparks-2   Source    Git@3b26e1a   Running    43 seconds ago
 ----
 
-Once the build and deploy has finished, verify your new image was
-automatically deployed by viewing the application in your browser:
+ビルドとデプロイが完了したら、ブラウザでアプリケーションを表示して、新しいイメージが
+自動的にデプロイされたことを確認します：
 
-link:http://nationalparks-{ocp4_starter_project}.{ocp4_starter_apps_domain}/ws/info/[National Parks Info Page,window='_blank']
+link:http://nationalparks-{ocp4_starter_project}.{ocp4_starter_apps_domain}/ws/info/[National Parks情報ページ,window='_blank']
 
-You should now see the new name you have set in the JSON string returned.
-
-NOTE: To see this in the map's legend itself, you will need to scale down your parksmap to 0, then back up to 1 to force the app to refresh its cache.
+これで、返されたJSON文字列に設定した新しい名前が表示されるはずです。
+NOTE: これをマップの凡例自体に表示するには、parksmapを0にスケールダウンしてから1に戻し、アプリにキャッシュを強制的に更新させる必要があります。

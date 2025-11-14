@@ -1,28 +1,25 @@
-= Scaling Apps
-:navtitle: Scaling Apps
+= アプリのスケーリング
+:navtitle: アプリのスケーリング
 
 include::vars.adoc[]
 
 [#deployments_and_replication_controllers]
-== Background: Deployments and ReplicaSets
+== 背景: Deployments と ReplicaSets
 
-While *Services* provide routing and load balancing for *Pods*, which may go in and out of existence, *ReplicaSets* (RS) and *ReplicationControllers* (RC) are used to specify and ensure the desired number of *Pods* (replicas) are running. For example, if you want your application server to always run 3 *Pods* (instances), a *ReplicaSet* is needed. Without an RS, any *Pods* that are killed or exit are not automatically restarted. *ReplicaSets* and *ReplicationControllers* provide self-healing in OpenShift. *Deployments* control *ReplicaSets*, while *ReplicationControllers* are controlled by *DeploymentConfigs*.
-
-From the link:{ocp4_starter_openshift_docs}/html/building_applications/deployments[deployments documentation,window='_blank']:
+*Service*（サービス）は、存在したりしなかったりする *Pod*（ポッド）へのルーティングとロードバランシングを提供しますが、*ReplicaSet*（RS、レプリカセット）と *ReplicationController*（RC、レプリケーションコントローラー）は、望ましい数の *Pod*（レプリカ）が実行されていることを指定し、保証するために使用されます。 例えば、アプリケーションサーバーを常に3つの *Pod*（インスタンス）で実行したい場合、*ReplicaSet* が必要です。 RSがないと、強制終了（kill）されたり終了したりした *Pod* は自動的に再起動されません。 *ReplicaSet* と *ReplicationController* は、OpenShiftで自己修復（self-healing）機能を提供します。*Deployment*（デプロイメント）は *ReplicaSet* を制御し、*ReplicationController* は *DeploymentConfig*（デプロイメント設定）によって制御されます。
+link:{ocp4_starter_openshift_docs}/html/building_applications/deployments[デプロイメントのドキュメント,window='_blank']から：
 
 [quote]
 __
-Similar to a replication controller, a ReplicaSet is a native Kubernetes API object that ensures a specified number of pod replicas are running at any given time. The difference between a replica set and a replication controller is that a replica set supports set-based selector requirements whereas a replication controller only supports equality-based selector requirements.
+レプリケーションコントローラーと同様に、ReplicaSetはネイティブなKubernetes APIオブジェクトであり、指定された数のPodレプリカが常に実行されていることを保証します。 ReplicaSetとレプリケーションコントローラーの違いは、ReplicaSetがセットベースのセレクター要件をサポートするのに対し、レプリケーションコントローラーは等価ベースのセレクター要件のみをサポートする点です。
 __
 
-In Kubernetes, a *Deployment* defines how something should be deployed. In almost all cases, you will use *Pod*, *Service*, *ReplicaSet*, and *Deployment* resources together. OpenShift will create all of them for you when you deploy container images using the web console or CLI.
-
-There are some advanced scenarios where you might want some *Pods* and a *ReplicaSet* without a *Deployment* or a *Service*. If you are interested in these cases, ask your instructor after the workshop.
+Kubernetesでは、*Deployment*（デプロイメント）が、何かがどのようにデプロイされるべきかを定義します。 ほとんどすべての場合において、*Pod*、*Service*、*ReplicaSet*、および *Deployment* リソースを一緒に使用します。 WebコンソールまたはCLIを使用してコンテナイメージをデプロイすると、OpenShiftがこれらすべてを作成します。 *Deployment* や *Service* なしで、いくつかの *Pod* と *ReplicaSet* が欲しいという高度なシナリオもいくつかあります。 これらのケースに興味がある場合は、ワークショップの後でインストラクターに尋ねてください。
 
 [#exploring_deployment_related_objects]
-== Exercise: Exploring Deployment-related Objects
+== 演習: Deployment関連オブジェクトの調査
 
-Now that you know the background of *ReplicaSets* and *Deployments*, explore how they work together. Take a look at the *Deployment* that was created when you instructed OpenShift to deploy the `parksmap` image:
+*ReplicaSet* と *Deployment* の背景知識がわかったので、それらがどのように連携するかを探ってみましょう。 `parksmap` イメージをデプロイするようOpenShiftに指示したときに作成された *Deployment* を見てみましょう：
 
 [source,role="copypaste"]
 ----
@@ -36,7 +33,7 @@ NAME       READY   UP-TO-DATE   AVAILABLE   AGE
 parksmap   1/1     1            1           20m
 ----
 
-To get more details, look into the *ReplicaSet* (RS):
+詳細については、*ReplicaSet* (RS) を調べてみましょう：
 
 [source,role="copypaste"]
 ----
@@ -46,35 +43,37 @@ oc get rs
 [.console-output]
 [source]
 ----
-NAME                  DESIRED   CURRENT   READY   AGE
+NAME                  DESIRED   CURRENT   
+ READY   AGE
 parksmap-65c4f8b676   1         1         1       21m
 ----
 
-This output shows that you currently expect one *Pod* to be deployed (`Desired`), and you have one *Pod* actually deployed (`Current`). By changing the desired number, you can tell OpenShift that you want more or fewer *Pods*.
+この出力は、現在1つの *Pod* がデプロイされること（`Desired`）を期待しており、実際に1つの *Pod* がデプロイされている（`Current`）ことを示しています。 望ましい数を変更することで、OpenShiftにもっと多い、または少ない *Pod* が欲しいと伝えることができます。
 
-TIP: OpenShift's *HorizontalPodAutoscaler (HPA)* can monitor the CPU and memory usage of a set of Pods and can update the RCs to ensure application stability by adding more instances. You can learn more about link:{ocp4_starter_openshift_docs}/html/nodes/working-with-pods#nodes-pods-autoscaling[Horizontal Pod Autoscalers in the documentation,window='_blank'].
+TIP: OpenShiftの *HorizontalPodAutoscaler (HPA)* は、PodセットのCPUとメモリ使用量を監視し、RCを更新してインスタンスを追加することでアプリケーションの安定性を確保できます。
+link:{ocp4_starter_openshift_docs}/html/nodes/working-with-pods#nodes-pods-autoscaling[ドキュメントでHorizontal Pod Autoscalerについて詳しく学ぶ,window='_blank']ことができます。
 
 [#scaling_the_application]
-== Exercise: Scaling the Application
+== 演習: アプリケーションのスケーリング
 
-In this exercise, you will scale the parksmap application up to 2 instances. You can do this with the `oc scale` command or by incrementing the Desired Count in the OpenShift web console. Choose the method you prefer.
+この演習では、parksmapアプリケーションを2インスタンスにスケールアップします。 これは `oc scale` コマンドを使用するか、OpenShift WebコンソールでDesired Count（望ましい数）を増やすことで実行できます。 お好みの方法を選択してください。
 
 [source,role="copypaste"]
 ----
 oc scale --replicas=2 deployment/parksmap
 ----
 
-Alternatively, you can scale up to two pods in the *Developer Perspective*. From the Topology view, click the `parksmap` Deployment config and select the *Details* tab:
+または、*Developer Perspective*（開発者パースペクティブ）で2つのPodにスケールアップすることもできます。 Topology（トポロジー）ビューから、`parksmap` Deployment configをクリックし、*Details*（詳細）タブを選択します：
 
 [.bordershadow]
 image::parksmap-details.png[link="self",window=_blank]
 
-Next, click the *^* icon next to the Pod visualization to scale up to 2 pods.
+次に、Podの視覚化の横にある *^* アイコンをクリックして、2つのPodにスケールアップします。
 
 [.bordershadow]
 image::parksmap-scaleup.png[link="self",window=_blank]
 
-To verify that you changed the number of replicas, issue the following command:
+レプリカ数を変更したことを確認するには、次のコマンドを実行します：
 
 [source,role="copypaste"]
 ----
@@ -88,7 +87,7 @@ NAME                  DESIRED   CURRENT   READY   AGE
 parksmap-65c4f8b676   2         2         2       23m
 ----
 
-You can see that you now have 2 replicas. Verify the number of pods with the `oc get pods` command:
+これで2つのレプリカがあることがわかります。 `oc get pods` コマンドでPodの数を確認します：
 
 [source,role="copypaste"]
 ----
@@ -103,14 +102,14 @@ parksmap-65c4f8b676-fxcrq   1/1     Running   0          92s
 parksmap-65c4f8b676-k5gkk   1/1     Running   0          24m
 ----
 
-Lastly, verify that the *Service* accurately reflects two endpoints:
+最後に、*Service* が2つのエンドポイントを正確に反映していることを確認します：
 
 [source,role="copypaste"]
 ----
 oc describe svc parksmap
 ----
 
-You will see output resembling the following. Notice that the *Servce* now targets two *Endpoints*:
+次のような出力が表示されます。 *Servce*（サービス）が2つの *Endpoint*（エンドポイント）をターゲットにしていることに注意してください：
 
 [.console-output]
 [source]
@@ -120,51 +119,49 @@ Namespace:         user1
 Labels:            app=workshop
                    app.kubernetes.io/component=parksmap
                    app.kubernetes.io/instance=parksmap
-                   app.kubernetes.io/part-of=workshop
+      app.kubernetes.io/part-of=workshop
                    component=parksmap
                    role=frontend
 Annotations:       openshift.io/generated-by: OpenShiftWebConsole
 Selector:          app=parksmap,deploymentconfig=parksmap
 Type:              ClusterIP
 IP:                172.30.22.209
-Port:              8080-tcp  8080/TCP
+Port:         
+      8080-tcp  8080/TCP
 TargetPort:        8080/TCP
 Endpoints:         10.128.2.90:8080,10.131.0.40:8080
 Session Affinity:  None
 Events:            <none>
 ----
 
-Another way to look at a *Service*'s endpoints is with the following:
+*Service* のエンドポイントを見る別の方法は、次のとおりです：
 
 [source,role="copypaste"]
 ----
 oc get endpoints parksmap
 ----
 
-You will see output resembling the following example:
+次の例のような出力が表示されます：
 
 [.console-output]
 [source]
 ----
 NAME       ENDPOINTS                           AGE
-parksmap   10.128.2.90:8080,10.131.0.40:8080   45m
+parksmap   10.128.2.90:8080,10.131.0.40:8080   
+ 45m
 ----
 
-Your IP addresses will likely be different, as each Pod receives a unique IP within the OpenShift environment. The endpoint list is a quick way to see how many pods are behind a service.
-
-You can also see that both *Pods* are running in the Developer Perspective:
+各PodはOpenShift環境内で一意のIPを受け取るため、IPアドレスは異なる可能性があります。 エンドポイントリストは、サービスの後ろにいくつのPodがあるかをすばやく確認する方法です。 Developer Perspective（開発者パースペクティブ）でも両方の *Pod* が実行されていることがわかります：
 
 [.bordershadow]
 image::parksmap-scaled.png[link="self",window=_blank]
 
-Overall, that's how simple it is to scale an application. Application scaling can happen extremely quickly because OpenShift is launching new instances of an existing image, especially if that image is already cached on the node that the new Pod is https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/[scheduled on, window="_blank"].
+全体として、アプリケーションのスケーリングはこれほど簡単です。 OpenShiftは既存のイメージの新しいインスタンスを起動しているだけなので、アプリケーションのスケーリングは非常に迅速に行うことができます。特に、そのイメージが新しいPodが https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/[スケジュールされた, window="_blank"]ノードにすでにキャッシュされている場合はなおさらです。
 
 [#application_self_healing]
-== Application "Self Healing"
+== アプリケーションの「自己修復」
 
-Because OpenShift's *RSs* are constantly monitoring to see that the desired number of *Pods* are running, you might expect OpenShift to "fix" the situation if the desired replica count doesn't match the current number.
-
-Since you have two *Pods* running right now, you can see what happens if you "accidentally" kill one. Run the `oc get pods` command again, and choose a *Pod* name. Then, do the following:
+OpenShiftの *RS* は、望ましい数の *Pod* が実行されているかを常に監視しているため、望ましいレプリカ数と現在の数が一致しない場合、OpenShiftが状況を「修正」することを期待するかもしれません。 現在2つの *Pod* が実行されているので、「誤って」1つを強制終了（kill）したらどうなるか見てみましょう。 `oc get pods` コマンドをもう一度実行し、*Pod* 名を1つ選びます。 そして、次を実行します：
 
 [source,role="copypaste"]
 ----
@@ -177,23 +174,18 @@ oc delete pod parksmap-7dfd599cd7-vgc7z && oc get pods
 pod "parksmap-65c4f8b676-k5gkk" deleted
 NAME                        READY   STATUS            RESTARTS     AGE
 parksmap-65c4f8b676-bjz5g   1/1     ContainerCreating   0          9s
-parksmap-65c4f8b676-fxcrq   1/1     Running             0          4m48s
+parksmap-65c4f8b676-fxcrq   1/1     Running             0  
+         4m48s
 ----
 
-Did you notice anything? One container has been deleted, but a new container is already being created in its place.
-
-Additionally, OpenShift provides rudimentary capabilities around checking the liveness and/or readiness of application instances. If the basic checks are insufficient, OpenShift also allows you to run a command inside the container in order to perform the check. That command could be a script that uses any installed language.
-
-Based on these health checks, if OpenShift decided that your `parksmap` application instance wasn't healthy, it would delete the instance and then create a new one in its place, always ensuring that the desired number of replicas was in place.
-
-More information on probing applications is available in the
-link:{ocp4_starter_openshift_docs}/html/building_applications/application-health[Application Health,window='_blank'] 
-section of the documentation and later in this guide.
+何か気づきましたか？ 1つのコンテナが削除されましたが、新しいコンテナがすぐにその代わりに作成されています。 さらに、OpenShiftはアプリケーションインスタンスのliveness（生存）やreadiness（準備完了）をチェックするための基本的な機能を提供します。 基本的なチェックが不十分な場合、OpenShiftはコンテナ内でコマンドを実行してチェックを行うことも許可します。 そのコマンドは、インストールされている任意の言語を使用したスクリプトである可能性があります。 これらのヘルスチェックに基づき、OpenShiftが `parksmap` アプリケーションインスタンスが不健康であると判断した場合、そのインスタンスを削除し、代わりに新しいインスタンスを作成し、常に望ましいレプリカ数が維持されるようにします。 アプリケーションのプローブに関する詳細は、
+ドキュメントの link:{ocp4_starter_openshift_docs}/html/building_applications/application-health[アプリケーションヘルス,window='_blank'] 
+セクションおよびこのガイドの後半で入手できます。
 
 [#scale_down]
-== Exercise: Scale Down
+== 演習: スケールダウン
 
-Before we continue, go ahead and scale your application down to a single
-instance. Feel free to do this using whatever method you like.
-
-WARNING: Failure to scale down to 1 Pod will cause unexpected behavior in later sections. This is due to how the application has been coded, and not related to OpenShift.
+続ける前に、アプリケーションを単一のインスタンスにスケールダウンしてください。
+好きな方法で自由に行ってください。
+WARNING: 1つのPodにスケールダウンしないと、後のセクションで予期しない動作が発生します。
+これはOpenShiftに関連するものではなく、アプリケーションがそのようにコーディングされているためです。

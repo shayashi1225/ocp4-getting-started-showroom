@@ -1,38 +1,36 @@
-= Debugging Apps
-:navtitle: Debugging Apps
+= アプリのデバッグ
+:navtitle: アプリのデバッグ
 
 include::vars.adoc[]
 
-[#port_forwading_and_debugging]
-== Background: Port Forwarding and Debugging
-Just as we did before with remote shelling into our pods, we can also set up a port-forward between our local machine
-and our pod. This is useful for operations like connecting to a database running in a pod, viewing an administrative web
-interface we don't want to expose to the public, or, in our case, attaching a debugger to the JVM running our application
-server.
 
-By port forwarding the debugging port for the application server, we can attach the debugger from our IDE and actually
-step through the code in the pod as it is running in real time. By default EAP is not in debug mode, therefore we first
-need to turn on the debug ports
+[#port_forwading_and_debugging]
+== 背景: ポートフォワーディングとデバッグ
+以前にPodにリモートシェルで接続したのと同様に、ローカルマシンとPod間にポートフォワード（port-forward）を設定することもできます。
+これは、Podで実行中のデータベースへの接続、公開したくない管理用Webインターフェースの表示、あるいは（今回の場合）アプリケーションサーバーを実行しているJVMへのデバッガーのアタッチといった操作に役立ちます。
+アプリケーションサーバーのデバッグポートをポートフォワーディングすることで、IDEからデバッガーをアタッチし、Pod内でリアルタイムに実行されているコードを実際にステップ実行できます。
+デフォルトではEAPはデバッグモードになっていないため、まずデバッグポートを有効にする必要があります。
 
 [#enabling_debugging_in_eap_on_openshift]
-== Exercise: Enabling Debugging in EAP on OpenShift
+== 演習: OpenShift上のEAPでデバッグを有効にする
 
-It is very simple to turn on debugging. The EAP S2I container we are using is looking for an environment variable to
-control whether or not to enable the debug port. All we need to do is set an environment variable for the deployment.
-
+デバッグを有効にするのは非常に簡単です。
+私たちが使用しているEAP S2Iコンテナは、デバッグポートを有効にするかどうかを制御するための環境変数を探します。
+必要なのは、デプロイメント（deployment）に環境変数を設定することだけです。
 [source,bash,role=copypaste]
 ----
 oc set env dc/mlbparks DEBUG=true
 ----
 
-This will force a redeploy of our MLBparks pod, this time with the JDWT transport enabled and serving on port 8787.
+これによりMLBparks Podが強制的に再デプロイされ、今度はJDWTトランスポートが有効になり、ポート8787で待機（serving）するようになります。
 
-Whilst we can connect to a Pod directly to debug it, when there is only one instance of a Pod running it can be convenient to setup port-forwarding through a Service (since Pod names change but the name of the Service is static).  See <<Exercise: Port-Forwarding from the pod to our local machine,Exercise: Port-Forwarding from the pod to our local machine>>
+Podに直接接続してデバッグすることもできますが、Podのインスタンスが1つしか実行されていない場合は、Serviceを介してポートフォワーディングを設定すると便利です（Pod名は変わりますが、Serviceの名前は静的（static）であるため）。
+<<Exercise: Port-Forwarding from the pod to our local machine,演習: Podからローカルマシンへのポートフォワーディング>> を参照してください。
 
 [#port-forwarding_from_svc_to_our_local_machine]
-== Port-Forwarding through a Service to our local machine
+== Serviceを介したローカルマシンへのポートフォワーディング
 
-Let's take a closer look at the service in question:
+問題のServiceを詳しく見てみましょう：
 
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -67,7 +65,7 @@ Session Affinity:  None
 Events:            <none>
 ----
 
-Now that our deployment is setup for debugging, it will be listening on port 8787.  We'll setup port-forwarding to that port on the service (which will in turn forward on to the pod)
+デプロイメントがデバッグ用にセットアップされたので、ポート8787でリッスン（listening）しています。Serviceのそのポート（訳注：8787）へのポートフォワーディングを設定します（これにより、ServiceはPodへと転送します）。
 
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -75,29 +73,34 @@ Now that our deployment is setup for debugging, it will be listening on port 878
 oc port-forward svc/mlbparks 8787:8787
 ----
 
-So now when we connect on `localhost:8787` it will get forwarded to the mlbparks instance running in the pod.  
+これで、 `localhost:8787` に接続すると、Podで実行されているmlbparksインスタンスに転送（forward）されます。
+NOTE: ポートフォワーディングは、 `oc port-forward` コマンドの実行が許可されている間だけアクティブです。
+フォアグラウンドで実行しているため、 kbd:[CTRL+c] （Macの場合は kbd:[CMD+c] ）を押すことでポートフォワーディングを停止できます。
 
-NOTE: port-forwarding is only active as long as the `oc port-forward` command is allowed to run.  Since we run it in the foreground, we are able to stop port-forwarding by hitting kbd:[CTRL+c] (or kbd:[CMD+c] on a Mac)
-
-Now all we need to do is find a debugger to connect on that port
+あとは、そのポートに接続するデバッガーを見つけるだけです。
 
 [#setting_up_remote_debugging]
-== Attaching a Remote Debugger
+== リモートデバッガーのアタッチ
 
-In order to debug the source code you can either use your IDE of choice (instructions for IntelliJ below) or you can debug from the Console.  Pick the appropriate tab for your situation.
+ソースコードをデバッグするには、お好みのIDE（IntelliJの手順は以下）を使用するか、コンソールからデバッグすることができます。
+状況に応じて適切なタブを選択してください。
 
 [tabs]
 ====
-Console::
+コンソール::
 +
 --
 
 .NOTE
 ****
-This assumes you have `jdb` the Java command line debugger installed.  If you don't, you can see xref::mlbparks-binary-build.adoc#docker_for_maven[these instructions] for running a docker container that has Maven AND the `jdb` installed.  Once you have completed those instructions, from within the container setup port-forwarding as discussed <<Port-Forwarding through a Service to our local machine,above>>.  Then follow the instructions below from within the container.
+これは、Javaコマンドラインデバッガーである `jdb` がインストールされていることを前提としています。
+インストールされていない場合は、 xref::mlbparks-binary-build.adoc#docker_for_maven[こちらの手順] を参照して、Mavenと `jdb` がインストールされたDockerコンテナを実行してください。
+これらの手順を完了したら、コンテナ内から <<Port-Forwarding through a Service to our local machine,上記>> で説明したようにポートフォワーディングを設定します。
+その後、コンテナ内から以下の手順に従います。
 ****
 
-. From the root of the mlbparks git repo that you cloned locally, run the following command:
+.
+ローカルにクローンしたmlbparksのGitリポジトリのルートから、次のコマンドを実行します：
 +
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -114,7 +117,8 @@ Initializing jdb ...
 > 
 ----
 +
-. Next, set a breakpoint in the `BackendController` class by issuing this command in the debugger:
+.
+次に、デバッガーでこのコマンドを発行して、 `BackendController` クラスにブレークポイントを設定します：
 +
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -128,7 +132,8 @@ stop in com.openshift.evg.roadshow.rest.BackendController.get
 Set breakpoint com.openshift.evg.roadshow.rest.BackendController.get
 ----
 +
-. Navigate to the mlbparks url (you can use curl from a shell or just paste the url in your browser)
+.
+mlbparksのURLに移動します（シェルからcurlを使用するか、ブラウザにURLを貼り付けます）
 +
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -136,7 +141,8 @@ Set breakpoint com.openshift.evg.roadshow.rest.BackendController.get
 curl http://mlbparks-workshop.{ocp4_starter_apps_domain}/ws/info
 ----
 +
-. Your debugger should now be "breaked" at the first line of the `BackendController.get` method
+.
+デバッガーが `BackendController.get` メソッドの最初の行で「ブレーク」（停止）するはずです
 +
 [.console-output]
 [source,java,subs="+macros,+attributes"]
@@ -145,39 +151,37 @@ Breakpoint hit: "thread=default task-4", com.openshift.evg.roadshow.rest.Backend
 23            return new Backend("mlbparks", "AMAZING MLB Parks", new Coordinates("39.82", "-98.57"), 5);
 ----
 +
-. Feel free to play around a bit with the jdb commands.  Some examples include: 
-** `list`: To see fuller view of source around the breakpoint
-** `where`: To dump the thread's current stack
-** `print`: Print value of variables, such as `print this` to see the BackendController as string
-** `cont`: Continue execution of the program
+. jdbコマンドを自由にいじってみてください。
+例としては以下が含まれます：
+** `list`: ブレークポイント周辺のソースをより広く表示します
+** `where`: スレッドの現在のスタックをダンプします
+** `print`: 変数の値を表示します。例えば `print this` でBackendControllerを文字列として表示します
+** `cont`: プログラムの実行を継続します
 --
 IntelliJ::
 +
 --
-Setting up remote debugging is quite easy in IntelliJ. First edit the run/debug configurations.
-Under the Run menu (kbd:[ALT + u]), choose edit configurations. This will bring up the new configuration dialog.
+IntelliJでのリモートデバッグの設定は非常に簡単です。
+まず、実行/デバッグ構成を編集します。Runメニュー（ kbd:[ALT + u] ）から、edit configurationsを選択します。
+これにより、新しい構成ダイアログが表示されます。
 
-Click the plus in the top left corner, scroll down, and choose Remote JVM Debug.
-
+左上隅のプラスをクリックし、下にスクロールして、Remote JVM Debugを選択します。
 image::deprecated/mlbparks-debugging-intellij-debug-new.png[IntelliJ New Configuration]
 
-On the resulting dialog page, change the name at the top to "on OpenShift" or whatever is informative to you. Then
-towards the bottom right, change the port number to 8787. When you have done that click "OK".
-
+表示されたダイアログページで、上部の名前を「on OpenShift」など、分かりやすいものに変更します。
+次に、右下に向かってポート番号を8787に変更します。それが完了したら「OK」をクリックします。
 image::deprecated/mlbparks-debugging-intellij-debug-info.png[IntelliJ New Configuration]
 
-Now when you click the Debug icon in IntelliJ, it will open the debugger and attach to JVM in the pod on OpenShift. Go
-ahead and set a break point in any class you want and it will do normal debugging - just like you know and love!
-
+これで、IntelliJでデバッグアイコンをクリックすると、デバッガーが開き、OpenShift上のPod内のJVMにアタッチされます。
+好きなクラスにブレークポイントを設定すれば、お馴染みの通常のデバッグが行えます！
 --
 ====
 
 [#port-forwarding_from_pod_to_our_local_machine]
-== Exercise: Port-Forwarding from the pod to our local machine
+== 演習: Podからローカルマシンへのポートフォワーディング
 
-It is quite simple to do port-forwarding.
-
-First get the pods:
+ポートフォワーディングを行うのは非常に簡単です。
+まずPodを取得します：
 [source,bash,role=copypaste]
 ----
 oc get pods
@@ -198,7 +202,7 @@ mlbparks-3-hcd8g                 0/1     Running     0          10s
 ...
 ----
 
-Now we can set to set up the port-forward:
+では、ポートフォワードを設定しましょう：
 
 [.console-input]
 [source,bash,subs="+attributes,macros+"]
@@ -206,4 +210,5 @@ Now we can set to set up the port-forward:
 oc port-forward mlbparks-3-hcd8g 8787:8787
 ----
 
-We said to port-forward from port 8787 on the pod to 8787 on the local machine. Now we can attach a remote debugger as outlined <<Attaching a Remote Debugger,here>>.
+Podのポート8787からローカルマシンの8787にポートフォワードするように指定しました。
+これで、 <<Attaching a Remote Debugger,ここ>> で概説されているようにリモートデバッガーをアタッチできます。

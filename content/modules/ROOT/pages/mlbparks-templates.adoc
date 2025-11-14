@@ -1,35 +1,27 @@
-= MLBParks App
-:navtitle: MLBParks App
+= MLBParksアプリ
+:navtitle: MLBParksアプリ
 
 include::vars.adoc[]
 
-In this lab, we're going to deploy a complete backend application, consisting of
-a REST API backend and a MongoDB database. The complete application will already
-be wired together and described as a backend for the map visualization tool, so
-that once the application is built and deployed, you will be able to see the new
-map.
+このラボでは、REST APIバックエンドとMongoDBデータベースで構成される、完全なバックエンドアプリケーションをデプロイします。
+この完全なアプリケーションは、すでに相互に連携（wired together）され、マップ可視化ツールのバックエンドとして記述されています。そのため、アプリケーションがビルドおよびデプロイされると、新しいマップが表示されるようになります。
 
-image::deprecated/roadshow-app-architecture-mlbparks.png[Application architecture,800,align="center"]
+image::deprecated/roadshow-app-architecture-mlbparks.png[アプリケーション アーキテクチャ,800,align="center"]
 
-Let's combine all of the exercises we have performed in the last several labs by
-using a *Template* that we can instantiate with a single command.  While we
-could have used templates to deploy everything in the workshop today, remember
-that it is important for you to understand how to create, deploy, and wire
-resources together.
-
+これまでのいくつかのラボで実行したすべての演習を、単一のコマンドでインスタンス化できる*テンプレート*を使用して組み合わせてみましょう。
+今日のワークショップですべてをデプロイするためにテンプレートを使用することもできましたが、リソースを作成し、デプロイし、相互に連携させる方法を理解することが重要であることを覚えておいてください。
 
 [#instantiate_template]
-== Exercise: Instantiate a Template
+== 演習: テンプレートのインスタンス化
 
-The front end application we've been working with this whole time will display
-as many back end services' data as are created. Adding more stuff with the right
-*Label* will make more stuff show up on the map.
+私たちがこれまでずっと作業してきたフロントエンドアプリケーションは、作成された数だけバックエンドサービスのデータを表示します。
+適切な*ラベル*（Label）を付けてアイテムを追加すると、マップ上にさらに多くのアイテムが表示されるようになります。
 
-Now you will deploy a map of Major League Baseball stadiums in the US by using a
-template. It is pre-configured to build the back end Java application, and
-deploy the MongoDB database. It also uses a *Hook* to call the `/ws/data/load`
-endpoint to cause the data to be loaded into the database from a JSON file in
-the source code repository. Execute the following command:
+ここでは、テンプレートを使用して、米国のメジャーリーグベースボールスタジアムのマップをデプロイします。
+これは、バックエンドのJavaアプリケーションをビルドし、MongoDBデータベースをデプロイするように事前設定されています。
+また、*フック*（Hook）を使用して `/ws/data/load` エンドポイントを呼び出し、ソースコードリポジトリ内のJSONファイルからデータベースにデータがロードされるようになっています。
+
+以下のコマンドを実行します：
 
 [.console-input]
 [source,bash,subs="+attributes"]
@@ -37,9 +29,9 @@ the source code repository. Execute the following command:
 oc create -f https://raw.githubusercontent.com/openshift-roadshow/mlbparks/master/ose3/application-template-eap.json -n {ocp4_starter_project}
 ----
 
-What just happened? What did you just `create`? The item that we passed to the `create`
-command is a *Template*. `create` simply makes the template available in
-your *Project*. You can see this with the following command:
+何が起こったのでしょうか？ 何を `create`（作成）したのでしょうか？
+`create` コマンドに渡したアイテムは*テンプレート*です。 `create` は、単にテンプレートを*プロジェクト*（Project）で利用可能にするだけです。
+これは、次のコマンドで確認できます：
 
 [.console-input]
 [source,bash,subs="+attributes,macros+"]
@@ -47,7 +39,7 @@ your *Project*. You can see this with the following command:
 oc get template
 ----
 
-You will see output like the following:
+以下のような出力が表示されます：
 
 [.console-output]
 [source,bash]
@@ -55,7 +47,7 @@ You will see output like the following:
 mlbparks      Application template MLBParks backend running on Wildfly and using mongodb   12 (2 blank)   8
 ----
 
-Run the following command to instantiate the template:
+次のコマンドを実行して、テンプレートをインスタンス化します：
 
 [.console-input]
 [source,bash,subs="+attributes,macros+"]
@@ -63,7 +55,7 @@ Run the following command to instantiate the template:
 oc new-app mlbparks -p APPLICATION_NAME=mlbparks
 ----
 
-You will see some output similar to this:
+このような出力が表示されます：
 
 [.console-output]
 [source,bash]
@@ -75,68 +67,63 @@ You will see some output similar to this:
      Application template MLBParks backend running on Wildfly and using mongodb
 
      * With parameters:
-        * Application Name=mlbparks
-        * Application route=
-        * Mongodb App=mongodb-mlbparks
-        * Git source repository=https://github.com/openshift-roadshow/mlbparks.git
-        * Git branch/tag reference=master
-        * Maven mirror url=
-        * Database name=mongodb
-        * Database user name=userW3n # generated
-        * Database user password=4PmSfXWL # generated
-        * Database admin password=cBQ4RGJf # generated
-        * GitHub Trigger=TOR1p3wO # generated
-        * Generic Trigger=NUlqyK54 # generated
+       * アプリケーション名=mlbparks
+       * アプリケーション ルート=
+       * Mongodb アプリ=mongodb-mlbparks
+       * Gitソースリポジトリ=https://github.com/openshift-roadshow/mlbparks.git
+       * Gitブランチ/タグ リファレンス=master
+       * MavenミラーURL=
+       * データベース名=mongodb
+       * データベース ユーザー名=userW3n # 生成済み
+       * データベース ユーザー パスワード=4PmSfXWL # 生成済み
+       * データベース 管理者パスワード=cBQ4RGJf # 生成済み
+       * GitHubトリガー=TOR1p3wO # 生成済み
+       * 汎用トリガー=NUlqyK54 # 生成済み
 
---> Creating resources ...
-    configmap "mlbparks" created
-    service "mongodb-mlbparks" created
-    deploymentconfig.apps.openshift.io "mongodb-mlbparks" created
-    imagestream.image.openshift.io "mlbparks" created
-    buildconfig.build.openshift.io "mlbparks" created
-    deploymentconfig.apps.openshift.io "mlbparks" created
-    service "mlbparks" created
-    route.route.openshift.io "mlbparks" created
---> Success
-    Build scheduled, use 'oc logs -f bc/mlbparks' to track its progress.
-    Access your application via route 'mlbparks-workshop.apps.cluster-1d43.1d43.openshiftworkshop.com'
-    Run 'oc status' to view your app.
+--> リソースを作成中 ...
+    configmap "mlbparks" が作成されました
+    service "mongodb-mlbparks" が作成されました
+    deploymentconfig.apps.openshift.io "mongodb-mlbparks" が作成されました
+    imagestream.image.openshift.io "mlbparks" が作成されました
+    buildconfig.build.openshift.io "mlbparks" が作成されました
+    deploymentconfig.apps.openshift.io "mlbparks" が作成されました
+    service "mlbparks" が作成されました
+    route.route.openshift.io "mlbparks" が作成されました
+--> Succeeded
+    ビルドがスケジュールされました。 'oc logs -f bc/mlbparks' を使用して進捗を追跡してください。
+    ルート 'mlbparks-workshop.apps.cluster-1d43.1d43.openshiftworkshop.com' 経由でアプリケーションにアクセスしてください。
+    'oc status' を実行してアプリのステータスを表示してください。
 ----
 
-OpenShift will now:
+これにより、OpenShiftは以下を実行します：
 
-* Configure and start a build
-** Using the supplied Maven mirror URL (if you have specified the parameter)
-** From the supplied source code repository
-* Configure and deploy MongoDB
-** Using auto-generated user, password, and database name
-* Configure environment variables for the app to connect to the DB
-* Create the correct services
-* Label the app service with `type=parksmap-backend`
+* ビルドを設定して開始します
+** （パラメータを指定した場合）提供されたMavenミラーURLを使用します
+** 提供されたソースコードリポジトリから
+* MongoDBを設定してデプロイします
+** 自動生成されたユーザー、パスワード、データベース名を使用します
+* アプリがDBに接続するための環境変数を設定します
+* 適切なServiceを作成します
+* アプリのServiceに `type=parksmap-backend` というラベルを付けます
 
-All with one command!
+すべてを1つのコマンドで！
+ビルドが完了したら、parks mapにアクセスしてください。動作しますか？
+これがあなたの環境でどのように使用できるか考えてみてください。例えば、テンプレートは、複数のアプリサーバー、データベースなどを含む「リファレンスアプリケーション」を構成する大規模なリソースセットを定義できます。
+1つのコマンドでリソースセット全体をデプロイし、その後それらを変更（hack）して、新機能の開発、マイクロサービスの追加、バグ修正などを行うことができます。
 
-When the build is complete, visit the parks map. Does it work? Think about how
-this could be used in your environment.  For example, a template could define a
-large set of resources that make up a "reference application", complete with
-several app servers, databases, and more.  You could deploy the entire set of
-resources with one command, and then hack on them to develop new features,
-microservices, fix bugs, and more.
+TIP: アプリがすでに `workshop` アプリケーショングループ内にあり、EAPとMongoDBの素敵なアイコンが付いていることにお気づきでしょう。これは、テンプレートが両方のDeploymentConfigにすでに設定していた `app.kubernetes.io/part-of` と `app.kubernetes.io/name` ラベルのおかげです。
 
-TIP: You'll notice apps are already inside `workshop` application group and they have a nice EAP and MongoDB icon. This is thanks to the label `app.kubernetes.io/part-of` and `app.kubernetes.io/name` that the template already setup for both DeploymentConfigs 
+image::deprecated/mlbparks-templates-complete-overview.png[全体の概要]
 
-image::deprecated/mlbparks-templates-complete-overview.png[Complete overview]
+上記のようにコマンドラインからテンプレートをインスタンス化できるだけでなく、WebコンソールのDeveloperパースペクティブからもテンプレートをインスタンス化できます。
+*+Add*（追加）をクリックし、次に *From Catalog*（カタログから）をクリックして `mlb` を検索します。 `MLBparks` の結果が表示されるはずです。
 
-In addition to being able to instantiate templates from the command line as we did above, templates can also be instantiated from the Developer Perspective in the web console. Click *+Add*, then *From Catalog* and search for `mlb`. You should see a result for `MLBparks`.
+image::deprecated/mlbparks-templates-dev-catalog.png[Developerカタログ内のテンプレート]
 
-image::deprecated/mlbparks-templates-dev-catalog.png[Template in Developer Catalog]
+`MLBparks` をクリックし、*Instantiate Template*（テンプレートのインスタンス化）ボタンをクリックすると、このテンプレートのインスタンス化に必要な様々な必須およびオプションのパラメータを案内するフォームが表示されます。
+CAUTION: すでにコマンドラインからテンプレートをインスタンス化しているため、今はWebコンソールからインスタンス化しないでください。
 
-If you click on `MLBparks` and then click the *Instantiate Template* button, you'll see a form that guides you through the different required and optional parameters needed to instantiate this template.
-
-CAUTION: Do not actually instantiate the template from the web console now, since you have already done so via the command line.
-
-As a final exercise, look at the template that was used to create the
-resources for our *mlbparks* application.
+最後の演習として、 *mlbparks* アプリケーションのリソースを作成するために使用されたテンプレートを見てみましょう。
 
 [.console-input]
 [source,bash,subs="+attributes,macros+"]
@@ -144,10 +131,11 @@ resources for our *mlbparks* application.
 oc get template mlbparks -o yaml
 ----
 
-But as always, you can use the OpenShift web console to do the same. In the Developer Perspective, click *Advanced -> Search* in the left navigation, then select *Template* from the dropdown, and click *mlbparks*. 
+しかし、いつものように、OpenShift Webコンソールを使っても同じことができます。
+Developerパースペクティブで、左側のナビゲーションから *Advanced -> Search*（高度な検索 -> 検索）をクリックし、ドロップダウンから *Template*（テンプレート）を選択し、 *mlbparks* をクリックします。
 
-image::deprecated/mlbparks-templates-yaml-menu.png[Complete overview]
+image::deprecated/mlbparks-templates-yaml-menu.png[全体の概要]
 
-On the next page, click *YAML* to see/edit the YAML from here.
+次のページで *YAML* をクリックすると、ここからYAMLを表示/編集できます。
 
-image::deprecated/mlbparks-templates-yaml-edit.png[Template YAML edit]
+image::deprecated/mlbparks-templates-yaml-edit.png[テンプレートYAMLの編集]
